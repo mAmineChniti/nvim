@@ -20,6 +20,7 @@
 =====================================================================
 =====================================================================
 
+
 What is Kickstart?
 
   Kickstart.nvim is *not* a distribution.
@@ -90,8 +91,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+-- Set to true if you have a Nerd Font installed
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -224,10 +225,408 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
+
+-- Navigation mappings
+-- Normal mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('', '<Right>', 'col(".") == col("$") - 1 ? "<Esc>j^" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Normal mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('', '<Left>', 'col(".") == 1 ? "<Esc>k$" : "<Left>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('i', '<Right>', 'col(".") == col("$") ? "<C-o>:normal! j^<CR>" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('i', '<Left>', 'col(".") == 1 ? "<C-o>:normal! k$<CR>" : "<Left>"', { noremap = true, expr = true, silent = true })
+
+-- Selection mappings
+-- Normal mode: Selects from current cursor position to the beginning of the first line
+vim.api.nvim_set_keymap('n', '<C-a>', 'ggVG', { noremap = true })
+-- Visual mode: Selects entire buffer
+vim.api.nvim_set_keymap('v', '<C-a>', '<Esc>ggVG', { noremap = true })
+-- Insert mode: Selects entire buffer
+vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true })
+
+-- Deletion mappings
+-- Insert mode: Deletes a word backward
+vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true })
+
+-- Cursor movement mappings
+-- Normal mode: Moves cursor to the beginning of the visual line and enters visual mode
+vim.api.nvim_set_keymap('n', '<C-Left>', '^v', { noremap = true, silent = true })
+-- Normal mode: Moves cursor to the end of the visual line and enters visual mode
+vim.api.nvim_set_keymap('n', '<C-Right>', '$v', { noremap = true, silent = true })
+-- Insert mode: Moves cursor to the beginning of the visual line and enters visual mode
+vim.api.nvim_set_keymap('i', '<C-Left>', '<Esc>^v', { noremap = true, silent = true })
+-- Insert mode: Moves cursor to the end of the visual line and enters visual mode
+vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = true })
+
+-- Undo mapping
+-- Normal mode: Undo
+vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
+
+-- Visual mode mappings
+-- Backspace in visual mode: Undo changes before deleting
+vim.api.nvim_set_keymap('v', '<BS>', '<C-g>u<BS>', { noremap = true })
+-- Copy to system clipboard
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true })
+-- Copy to system clipboard in insert mode
+vim.api.nvim_set_keymap('i', '<C-c>', '"+y', { noremap = true })
+-- Cut to black hole register
+vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
+-- Cut to black hole register in insert mode
+vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
+
+-- Map Ctrl+S to :w in normal mode
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <Esc>:w in insert mode
+vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
+
+-- Map Ctrl+S to :w in visual mode
+vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <C-\><C-n>:w in command-line mode
+vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, silent = true })
+
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  -- { 'gleam-lang/gleam.vim' },
+  -- {
+  --   'huggingface/llm.nvim',
+  --   opts = {
+  --     backend = 'ollama',
+  --     model = 'gemma:2b',
+  --     url = 'http://localhost:11434',
+  --     tokens_to_clear = { '<|endoftext|>' },
+  --     request_body = {
+  --       parameters = {
+  --         max_new_tokens = 60,
+  --         temperature = 0.2,
+  --         top_p = 0.95,
+  --       },
+  --     },
+  --     debounce_ms = 150,
+  --     accept_keymap = '<Tab>',
+  --     dismiss_keymap = '<S-Tab>',
+  --     tls_skip_verify_insecure = false,
+  --     lsp = {
+  --       bin_path = nil,
+  --       host = nil,
+  --       port = nil,
+  --       version = '0.5.2',
+  --     },
+  --     tokenizer = nil,
+  --     context_window = 8192,
+  --     enable_suggestions_on_startup = true,
+  --     enable_suggestions_on_files = '*',
+  --   },
+  -- },
+  { 'jose-elias-alvarez/null-ls.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- { 'akinsho/bufferline.nvim', version = '*', dependencies = 'nvim-tree/nvim-web-devicons' },
+  -- {
+  --   'nanozuki/tabby.nvim',
+  --   -- event = 'VimEnter', -- if you want lazy load, see below
+  --   dependencies = 'nvim-tree/nvim-web-devicons',
+  -- },
+  {
+    'romgrk/barbar.nvim',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
+    init = function()
+      vim.g.barbar_auto_setup = false
+    end,
+    opts = {
+      -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
+      -- animation = true,
+      -- insert_at_start = true,
+      -- …etc.
+    },
+    -- version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
+  { 'github/copilot.vim' },
+  -- {
+  --   'Exafunction/codeium.vim',
+  --   event = 'BufEnter',
+  -- },
+  -- {
+  --   'Exafunction/codeium.vim',
+  --   config = function()
+  --     -- Change '<C-g>' here to any keycode you like.
+  --     vim.g.codeium_disable_bindings = 1
+  --     vim.g.codeium_enabled = true
+  --     vim.keymap.set('i', '<C-y>', function()
+  --       return vim.fn['codeium#Accept']()
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-n>', function()
+  --       return vim.fn['codeium#CycleCompletions'](1)
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-p>', function()
+  --       return vim.fn['codeium#CycleCompletions'](-1)
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-x>', function()
+  --       return vim.fn['codeium#Clear']()
+  --     end, { expr = true, silent = true })
+  --   end,
+  -- },
+  {
+    'saecki/crates.nvim',
+    tag = 'stable',
+  },
+  { 'f-person/git-blame.nvim', opts = { enabled = true } },
+  {
+    'ray-x/go.nvim',
+    dependencies = { -- optional packages
+      'ray-x/guihua.lua',
+      'neovim/nvim-lspconfig',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('go').setup()
+    end,
+    event = { 'CmdlineEnter' },
+    ft = { 'go', 'gomod' },
+    build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+  },
+  -- {
+  --   'vhyrro/luarocks.nvim',
+  --   priority = 1001, -- this plugin needs to run before anything else
+  --   opts = {
+  --     rocks = { 'magick' },
+  --   },
+  -- },
+  -- {
+  --   '3rd/image.nvim',
+  --   dependencies = { 'luarocks.nvim' },
+  --   config = function()
+  --     -- ...
+  --   end,
+  -- },
+  { 'lukas-reineke/indent-blankline.nvim', main = 'ibl', opts = {} },
+  {
+    'folke/lsp-colors.nvim',
+    config = function()
+      require('lsp-colors').setup {
+        Error = '#db4b4b',
+        Warning = '#e0af68',
+        Information = '#0db9d7',
+        Hint = '#10B981',
+      }
+    end,
+  },
+  -- {
+  --   'nvim-lualine/lualine.nvim',
+  --   dependencies = { 'nvim-tree/nvim-web-devicons' },
+  --   opts = { theme = 'dracula' },
+  -- },
+  {
+    'nvim-lualine/lualine.nvim',
+    event = 'VeryLazy',
+    opts = function()
+      local colors = require('cyberdream.colors').default
+      local cyberdream = require 'lualine.themes.auto'
+      local copilot_colors = {
+        [''] = { fg = colors.grey, bg = colors.none },
+        ['Normal'] = { fg = colors.grey, bg = colors.none },
+        ['Warning'] = { fg = colors.red, bg = colors.none },
+        ['InProgress'] = { fg = colors.yellow, bg = colors.none },
+      }
+      return {
+        options = {
+          component_separators = { left = ' ', right = ' ' },
+          section_separators = { left = ' ', right = ' ' },
+          theme = cyberdream,
+          globalstatus = true,
+          disabled_filetypes = { statusline = { 'dashboard', 'alpha' } },
+        },
+        sections = {
+          lualine_a = { { 'mode', icon = 'M' } },
+          lualine_b = { { 'branch', icon = '' } },
+          lualine_c = {
+            {
+              'diagnostics',
+              symbols = {
+                error = ' ',
+                warn = ' ',
+                info = ' ',
+                hint = '󰝶 ',
+              },
+            },
+            { 'filetype', icon_only = true, separator = '', padding = { left = 1, right = 0 } },
+            {
+              'filename',
+              symbols = { modified = '  ', readonly = '', unnamed = '' },
+            },
+            {
+              function()
+                return require('nvim-navic').get_location()
+              end,
+              cond = function()
+                return package.loaded['nvim-navic'] and require('nvim-navic').is_available()
+              end,
+              color = { fg = colors.grey, bg = colors.none },
+            },
+          },
+          lualine_x = {
+            {
+              require('lazy.status').updates,
+              cond = require('lazy.status').has_updates,
+              color = { fg = colors.green },
+            },
+            {
+              function()
+                local icon = ' '
+                local status = require('copilot.api').status.data
+                return icon .. (status.message or '')
+              end,
+              cond = function()
+                local ok, clients = pcall(vim.lsp.get_clients, { name = 'copilot', bufnr = 0 })
+                return ok and #clients > 0
+              end,
+              color = function()
+                if not package.loaded['copilot'] then
+                  return
+                end
+                local status = require('copilot.api').status.data
+                return copilot_colors[status.status] or copilot_colors['']
+              end,
+            },
+            { 'diff' },
+          },
+          lualine_y = {
+            {
+              'progress',
+            },
+            {
+              'location',
+              color = { fg = colors.cyan, bg = colors.none },
+            },
+          },
+          lualine_z = {
+            function()
+              return '  ' .. os.date '%X' .. ' 🚀 '
+            end,
+          },
+        },
 
+        extensions = { 'lazy', 'toggleterm', 'mason', 'neo-tree', 'trouble' },
+      }
+    end,
+  },
+  {
+    'ray-x/navigator.lua',
+    requires = {
+      { 'ray-x/guihua.lua', run = 'cd lua/fzy && make' },
+      { 'neovim/nvim-lspconfig' },
+    },
+  },
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    branch = 'v3.x',
+    requires = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'MunifTanjim/nui.nvim',
+      '3rd/image.nvim', -- Optional image support in preview window: See `# Preview Mode` for more information
+    },
+    config = function()
+      require('neo-tree').setup {
+        window = {
+          position = 'right',
+          width = 20, -- Set the width of the NeoTree window to 40 columns
+        },
+        filesystem = {
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false,
+          },
+          filtered_items = {
+            visible = true,
+            hide_dotfiles = false, -- Show dotfiles in the NeoTree
+            hide_by_name = {
+              'node_modules',
+            },
+          },
+        },
+      }
+    end,
+  },
+  { 'tpope/vim-fugitive' },
+  {
+    'folke/noice.nvim',
+    event = 'VeryLazy',
+    opts = {
+      presets = {
+        bottom_search = true,
+      },
+      popupmenu = {
+        width = 20, -- Adjust the width of the popupmenu
+      },
+      notify = {
+        enabled = true, -- Enable notifications
+        view = 'notify', -- Use 'notify' as the notification view
+        width = 20, -- Adjust the width of notifications
+      },
+    },
+    dependencies = {
+      -- Lazy-load nui.nvim
+      { 'MunifTanjim/nui.nvim' },
+      -- Lazy-load nvim-notify
+      {
+        'rcarriga/nvim-notify',
+        config = function()
+          require('notify').setup {
+            max_width = 50,
+            -- max_height = 100,
+            timeout = 3000,
+            background_color = 'FloatShadow',
+          }
+        end,
+      },
+    },
+  },
+  {
+    'kylechui/nvim-surround',
+    version = '*', -- Use for stability; omit to use `main` branch for the latest features
+    event = 'VeryLazy',
+  },
+  --       Old text                    Command         New text
+  -- --------------------------------------------------------------------------------
+  --     surr*ound_words             ysiw)           (surround_words)
+  --     *make strings               ys$"            "make strings"
+  --     [delete ar*ound me!]        ds]             delete around me!
+  --     remove <b>HTML t*ags</b>    dst             remove HTML tags
+  --     'change quot*es'            cs'"            "change quotes"
+  --     <b>or tag* types</b>        csth1<CR>       <h1>or tag types</h1>
+  --     delete(functi*on calls)     dsf             function calls
+  {
+    'folke/trouble.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      display = { wrap = true },
+      auto_close = true,
+      auto_fold = true,
+      height = 5,
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+  },
+  {
+    'mrcjkb/rustaceanvim',
+    version = '^4', -- Recommended
+    ft = { 'rust' },
+  },
+  -- {
+  --   'pmizio/typescript-tools.nvim',
+  --   dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+  --   opts = {},
+  -- },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    after = 'nvim-treesitter',
+    requires = 'nvim-treesitter/nvim-treesitter',
+  },
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -237,11 +636,12 @@ require('lazy').setup({
   --  This is equivalent to:
   --    require('Comment').setup({})
 
-  -- "gc" to comment visual regions/lines
+  -- "gc" to comment
+  -- "gcc" to uncomment
   { 'numToStr/Comment.nvim', opts = {} },
-
-  -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
+  { 'xiyaowong/transparent.nvim' },
+  { 'akinsho/toggleterm.nvim', version = '*', opts = { open_mapping = [[<c-/>]] } },
+  -- Here is a more advanced example where we pass configura-- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
   --
   -- See `:help gitsigns` to understand what the configuration keys do
@@ -369,7 +769,6 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -565,7 +964,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = { cmd = { 'clangd', '--offset-encoding=utf-16' } },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -577,7 +976,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         --
-
+        -- gleam = {},
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -644,7 +1043,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { css = true }
         return {
           timeout_ms = 500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
@@ -658,6 +1057,8 @@ require('lazy').setup({
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
+        c = { 'clang-format --style=llvm' },
+        cpp = { 'clang-format --style=llvm' },
       },
     },
   },
@@ -772,25 +1173,32 @@ require('lazy').setup({
       }
     end,
   },
-
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+  -- { -- You can easily change to a different colorscheme.
+  --   -- Change the name of the colorscheme plugin below, and then
+  --   -- change the command in the config to whatever the name of that colorscheme is.
+  --   --
+  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   init = function()
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     vim.cmd.colorscheme 'tokyonight-night'
+  --
+  --     -- You can configure highlights by doing something like:
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
+  {
+    'scottmckendry/cyberdream.nvim',
+    lazy = false,
+    priority = 1000,
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
-
-      -- You can configure highlights by doing something like:
+      vim.cmd.colorscheme 'cyberdream'
       vim.cmd.hi 'Comment gui=none'
     end,
   },
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 

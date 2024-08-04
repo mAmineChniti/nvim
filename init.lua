@@ -289,7 +289,7 @@ vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, sil
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  -- { 'gleam-lang/gleam.vim' },
+  { 'gleam-lang/gleam.vim' },
   -- {
   --   'huggingface/llm.nvim',
   --   opts = {

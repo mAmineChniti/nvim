@@ -260,7 +260,7 @@ vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = 
 
 -- Undo mapping
 -- Normal mode: Undo
-vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
+vim.api.nvim_set_keymap('n', '<S-z>', 'u', { noremap = true })
 
 -- Visual mode mappings
 -- Backspace in visual mode: Undo changes before deleting
@@ -273,6 +273,8 @@ vim.api.nvim_set_keymap('i', '<C-c>', '"+y', { noremap = true })
 vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
 -- Cut to black hole register in insert mode
 vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
+
+vim.api.nvim_set_keymap('i', '<S-v>', '<C-r>+', { noremap = true, silent = true })
 
 -- Map Ctrl+S to :w in normal mode
 vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })

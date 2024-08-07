@@ -274,7 +274,7 @@ vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
 -- Cut to black hole register in insert mode
 vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
 
-vim.api.nvim_set_keymap('i', '<S-v>', '<C-r>+', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<S-v>', '<C-o>"+p', { noremap = true, silent = true })
 
 -- Map Ctrl+S to :w in normal mode
 vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })

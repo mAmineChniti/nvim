@@ -397,20 +397,6 @@ require('lazy').setup({
     ft = { 'go', 'gomod' },
     build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
   },
-  -- {
-  --   'vhyrro/luarocks.nvim',
-  --   priority = 1001, -- this plugin needs to run before anything else
-  --   opts = {
-  --     rocks = { 'magick' },
-  --   },
-  -- },
-  -- {
-  --   '3rd/image.nvim',
-  --   dependencies = { 'luarocks.nvim' },
-  --   config = function()
-  --     -- ...
-  --   end,
-  -- },
   {
     'lukas-reineke/indent-blankline.nvim',
     main = 'ibl',

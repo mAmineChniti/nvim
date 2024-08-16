@@ -446,16 +446,10 @@ require('lazy').setup({
   -- },
   {
     'nvim-lualine/lualine.nvim',
-    event = 'VeryLazy',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = function()
       local colors = require('cyberdream.colors').default
       local cyberdream = require 'lualine.themes.auto'
-      local copilot_colors = {
-        [''] = { fg = colors.grey, bg = colors.none },
-        ['Normal'] = { fg = colors.grey, bg = colors.none },
-        ['Warning'] = { fg = colors.red, bg = colors.none },
-        ['InProgress'] = { fg = colors.yellow, bg = colors.none },
-      }
       return {
         options = {
           component_separators = { left = ' ', right = ' ' },
@@ -489,7 +483,7 @@ require('lazy').setup({
               cond = function()
                 return package.loaded['nvim-navic'] and require('nvim-navic').is_available()
               end,
-              color = { fg = colors.grey, bg = colors.none },
+              color = { fg = colors.grey, bg = colors.bg }, -- Fixed to colors.bg for background
             },
           },
           lualine_x = {
@@ -498,34 +492,11 @@ require('lazy').setup({
               cond = require('lazy.status').has_updates,
               color = { fg = colors.green },
             },
-            {
-              function()
-                local icon = ' '
-                local status = require('copilot.api').status.data
-                return icon .. (status.message or '')
-              end,
-              cond = function()
-                local ok, clients = pcall(vim.lsp.get_clients, { name = 'copilot', bufnr = 0 })
-                return ok and #clients > 0
-              end,
-              color = function()
-                if not package.loaded['copilot'] then
-                  return
-                end
-                local status = require('copilot.api').status.data
-                return copilot_colors[status.status] or copilot_colors['']
-              end,
-            },
             { 'diff' },
           },
           lualine_y = {
-            {
-              'progress',
-            },
-            {
-              'location',
-              color = { fg = colors.cyan, bg = colors.none },
-            },
+            'progress',
+            'location',
           },
           lualine_z = {
             function()
@@ -533,7 +504,6 @@ require('lazy').setup({
             end,
           },
         },
-
         extensions = { 'lazy', 'toggleterm', 'mason', 'neo-tree', 'trouble' },
       }
     end,

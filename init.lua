@@ -449,12 +449,12 @@ require('lazy').setup({
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = function()
       local colors = require('cyberdream.colors').default
-      local cyberdream = require 'lualine.themes.auto'
+      local theme = require 'lualine.themes.auto' -- Change this if you want to switch to a different theme
       return {
         options = {
           component_separators = { left = ' ', right = ' ' },
           section_separators = { left = ' ', right = ' ' },
-          theme = cyberdream,
+          theme = theme, -- This will now use the theme variable, change it to use a different theme
           globalstatus = true,
           disabled_filetypes = { statusline = { 'dashboard', 'alpha' } },
         },
@@ -483,10 +483,25 @@ require('lazy').setup({
               cond = function()
                 return package.loaded['nvim-navic'] and require('nvim-navic').is_available()
               end,
-              color = { fg = colors.grey, bg = colors.bg }, -- Fixed to colors.bg for background
+              color = { fg = colors.grey, bg = colors.bg },
             },
           },
           lualine_x = {
+            {
+              function()
+                local clients = vim.lsp.get_active_clients()
+                if next(clients) == nil then
+                  return ''
+                end
+                local lsp_names = {}
+                for _, client in pairs(clients) do
+                  table.insert(lsp_names, client.name)
+                end
+                return table.concat(lsp_names, ', ')
+              end,
+              icon = ' ',
+              color = { fg = colors.cyan, bg = colors.bg }, -- Adjust colors as needed
+            },
             {
               require('lazy.status').updates,
               cond = require('lazy.status').has_updates,

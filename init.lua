@@ -463,7 +463,19 @@ require('lazy').setup({
         },
         sections = {
           lualine_a = { { 'mode', icon = 'M' } },
-          lualine_b = { { 'branch', icon = '' } },
+          lualine_b = {
+            {
+              'branch',
+              icon = '',
+              fmt = function(str)
+                -- Truncate the branch name if it's longer than 15 characters
+                if #str > 15 then
+                  return string.sub(str, 1, 12) .. '...'
+                end
+                return str
+              end,
+            },
+          },
           lualine_c = {
             {
               'diagnostics',
@@ -1258,7 +1270,6 @@ require('lazy').setup({
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
-    opts = { transparent = true, styles = { sidebars = 'transparent', floats = 'transparent' } },
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       -- Load the colorscheme here.

@@ -295,6 +295,14 @@ require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   {
+    'NvChad/nvim-colorizer.lua',
+    opts = {
+      user_default_options = {
+        tailwind = true,
+      },
+    },
+  },
+  {
     'barrett-ruth/import-cost.nvim',
     build = 'sh install.sh yarn',
     -- if on windows
@@ -1158,6 +1166,15 @@ require('lazy').setup({
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
     dependencies = {
+      { 'roobert/tailwindcss-colorizer-cmp.nvim', config = true },
+      opts = function(_, opts)
+        -- original LazyVim kind icon formatter
+        local format_kinds = opts.formatting.format
+        opts.formatting.format = function(entry, item)
+          format_kinds(entry, item) -- add icons
+          return require('tailwindcss-colorizer-cmp').formatter(entry, item)
+        end
+      end,
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',

@@ -294,6 +294,7 @@ vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, sil
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  { 'RomanVolkov/go.get.nvim' },
   {
     'NvChad/nvim-colorizer.lua',
     opts = {
@@ -364,7 +365,14 @@ require('lazy').setup({
     },
     version = '^1.0.0', -- optional: only update when a new 1.x version is released
   },
-  { 'github/copilot.vim' },
+  {
+    'github/copilot.vim',
+    config = function()
+      vim.g.copilot_no_tab_map = true
+      vim.g.copilot_assume_mapped = true
+      vim.api.nvim_set_keymap('i', '<S-Right>', 'copilot#Accept("<CR>")', { expr = true, silent = true })
+    end,
+  },
   -- {
   --   'Exafunction/codeium.vim',
   --   event = 'BufEnter',
@@ -851,8 +859,13 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension 'go_get')
+      require('telescope').extensions.go_get.packages_search()
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
+      vim.keymap.set('n', '<Leader>gog', function()
+        require('telescope').extensions.go_get.packages_search()
+      end, { desc = '[Go] [G]et packages' })
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })

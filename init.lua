@@ -320,7 +320,7 @@ require('lazy').setup({
         {
           '<leader>gog',
           function()
-            require('telescope').extensions.go_get.packages_search()
+            require('telescope').extensions.go_get.packages_search { layout_config = { height = 0.5 } }
           end,
           desc = '[G]o [G]et packages',
         },

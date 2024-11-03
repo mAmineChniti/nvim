@@ -491,10 +491,10 @@ require('lazy').setup({
   --     end, { expr = true, silent = true })
   --   end,
   -- },
-  {
-    'saecki/crates.nvim',
-    tag = 'stable',
-  },
+  -- {
+  --   'saecki/crates.nvim',
+  --   tag = 'stable',
+  -- },
   { 'f-person/git-blame.nvim', opts = { enabled = true } },
   {
     'ray-x/go.nvim',

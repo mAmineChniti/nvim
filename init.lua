@@ -263,7 +263,7 @@ vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = 
 
 -- Undo mapping
 -- Normal mode: Undo
-vim.api.nvim_set_keymap('n', '<S-z>', 'u', { noremap = true })
+vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
 
 -- Visual mode mappings
 -- Backspace in visual mode: Undo changes before deleting
@@ -277,7 +277,7 @@ vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
 -- Cut to black hole register in insert mode
 vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
 
-vim.api.nvim_set_keymap('i', '<S-v>', '<C-o>"+p', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-o>"+p', { noremap = true, silent = true })
 
 -- Map Ctrl+S to :w in normal mode
 vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
@@ -461,11 +461,6 @@ require('lazy').setup({
   },
   {
     'github/copilot.vim',
-    config = function()
-      vim.g.copilot_no_tab_map = true
-      vim.g.copilot_assume_mapped = true
-      vim.api.nvim_set_keymap('i', '<S-Right>', 'copilot#Accept("<CR>")', { expr = true, silent = true })
-    end,
   },
   -- {
   --   'Exafunction/codeium.vim',

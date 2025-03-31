@@ -452,6 +452,24 @@ require('lazy').setup({
   --   dependencies = 'nvim-tree/nvim-web-devicons',
   -- },
   {
+    'echasnovski/mini.move',
+    version = false,
+    config = function()
+      require('mini.move').setup {
+        mappings = {
+          left = '<A-Left>',
+          right = '<A-Right>',
+          down = '<A-Down>',
+          up = '<A-Up>',
+          line_left = '<A-Left>',
+          line_right = '<A-Right>',
+          line_down = '<A-Down>',
+          line_up = '<A-Up>',
+        },
+      }
+    end,
+  },
+  {
     'romgrk/barbar.nvim',
     dependencies = {
       'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status

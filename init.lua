@@ -20,6 +20,7 @@
 =====================================================================
 =====================================================================
 
+
 What is Kickstart?
 
   Kickstart.nvim is *not* a distribution.
@@ -90,8 +91,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+-- Set to true if you have a Nerd Font installed
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -237,10 +238,608 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
+
+-- Navigation mappings
+-- Normal mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('', '<Right>', 'col(".") == col("$") - 1 ? "<Esc>j^" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Normal mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('', '<Left>', 'col(".") == 1 ? "<Esc>k$" : "<Left>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('i', '<Right>', 'col(".") == col("$") ? "<C-o>:normal! j^<CR>" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('i', '<Left>', 'col(".") == 1 ? "<C-o>:normal! k$<CR>" : "<Left>"', { noremap = true, expr = true, silent = true })
+
+-- Selection mappings
+-- Normal mode: Selects from current cursor position to the beginning of the first line
+vim.api.nvim_set_keymap('n', '<C-a>', 'ggVG', { noremap = true })
+-- Visual mode: Selects entire buffer
+vim.api.nvim_set_keymap('v', '<C-a>', '<Esc>ggVG', { noremap = true })
+-- Insert mode: Selects entire buffer
+vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true })
+
+-- Deletion mappings
+-- Insert mode: Deletes a word backward
+vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true })
+
+-- Cursor movement mappings
+-- Normal mode: Moves cursor to the beginning of the visual line and enters visual mode
+vim.api.nvim_set_keymap('n', '<C-Left>', '^v', { noremap = true, silent = true })
+-- Normal mode: Moves cursor to the end of the visual line and enters visual mode
+vim.api.nvim_set_keymap('n', '<C-Right>', '$v', { noremap = true, silent = true })
+-- Insert mode: Moves cursor to the beginning of the visual line and enters visual mode
+vim.api.nvim_set_keymap('i', '<C-Left>', '<Esc>^v', { noremap = true, silent = true })
+-- Insert mode: Moves cursor to the end of the visual line and enters visual mode
+vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = true })
+
+-- Undo mapping
+-- Normal mode: Undo
+vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
+
+-- Visual mode mappings
+-- Backspace in visual mode: Undo changes before deleting
+vim.api.nvim_set_keymap('v', '<BS>', '<C-g>u<BS>', { noremap = true })
+-- Copy to system clipboard
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true })
+-- Copy to system clipboard in insert mode
+vim.api.nvim_set_keymap('i', '<C-c>', '"+y', { noremap = true })
+-- Cut to black hole register
+vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
+-- Cut to black hole register in insert mode
+vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
+
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-o>"+p', { noremap = true, silent = true })
+
+-- Map Ctrl+S to :w in normal mode
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <Esc>:w in insert mode
+vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
+
+-- Map Ctrl+S to :w in visual mode
+vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <C-\><C-n>:w in command-line mode
+vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, silent = true })
+
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'mfussenegger/nvim-dap',
+    recommended = true,
+    desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
 
+    dependencies = {
+      'rcarriga/nvim-dap-ui',
+      -- virtual text for the debugger
+      {
+        'theHamsta/nvim-dap-virtual-text',
+        opts = {},
+      },
+    },
+
+  -- stylua: ignore
+  keys = {
+    { "<leader>d", "", desc = "+debug", mode = {"n", "v"} },
+    { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
+    { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
+    { "<leader>dc", function() require("dap").continue() end, desc = "Continue" },
+    { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
+    { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to Cursor" },
+    { "<leader>dg", function() require("dap").goto_() end, desc = "Go to Line (No Execute)" },
+    { "<leader>di", function() require("dap").step_into() end, desc = "Step Into" },
+    { "<leader>dj", function() require("dap").down() end, desc = "Down" },
+    { "<leader>dk", function() require("dap").up() end, desc = "Up" },
+    { "<leader>dl", function() require("dap").run_last() end, desc = "Run Last" },
+    { "<leader>do", function() require("dap").step_out() end, desc = "Step Out" },
+    { "<leader>dO", function() require("dap").step_over() end, desc = "Step Over" },
+    { "<leader>dp", function() require("dap").pause() end, desc = "Pause" },
+    { "<leader>dr", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
+    { "<leader>ds", function() require("dap").session() end, desc = "Session" },
+    { "<leader>dt", function() require("dap").terminate() end, desc = "Terminate" },
+    { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
+  },
+
+    config = function()
+      -- load mason-nvim-dap here, after all adapters have been setup
+      if LazyVim.has 'mason-nvim-dap.nvim' then
+        require('mason-nvim-dap').setup(LazyVim.opts 'mason-nvim-dap.nvim')
+      end
+
+      vim.api.nvim_set_hl(0, 'DapStoppedLine', { default = true, link = 'Visual' })
+
+      for name, sign in pairs(LazyVim.config.icons.dap) do
+        sign = type(sign) == 'table' and sign or { sign }
+        vim.fn.sign_define('Dap' .. name, { text = sign[1], texthl = sign[2] or 'DiagnosticInfo', linehl = sign[3], numhl = sign[3] })
+      end
+
+      -- setup dap config by VsCode launch.json file
+      local vscode = require 'dap.ext.vscode'
+      local json = require 'plenary.json'
+      vscode.json_decode = function(str)
+        return vim.json.decode(json.json_strip_comments(str))
+      end
+
+      -- Extends dap.configurations with entries read from .vscode/launch.json
+      if vim.fn.filereadable '.vscode/launch.json' then
+        vscode.load_launchjs()
+      end
+    end,
+  },
+  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'kdheepak/lazygit.nvim',
+    cmd = {
+      'LazyGit',
+      'LazyGitConfig',
+      'LazyGitCurrentFile',
+      'LazyGitFilter',
+      'LazyGitFilterCurrentFile',
+    },
+    -- optional for floating window border decoration
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    -- setting the keybinding for LazyGit with 'keys' is recommended in
+    -- order to load the plugin when the command is run for the first time
+    keys = {
+      { '<leader>lg', '<cmd>LazyGit<cr>', desc = 'LazyGit' },
+    },
+  },
+  {
+    'RomanVolkov/go.get.nvim',
+    keys = function()
+      return {
+        {
+          '<leader>gog',
+          function()
+            require('telescope').extensions.go_get.packages_search { layout_config = { height = 0.5 } }
+          end,
+          desc = '[G]o [G]et packages',
+        },
+      }
+    end,
+  },
+  {
+    'NvChad/nvim-colorizer.lua',
+    opts = {
+      user_default_options = {
+        tailwind = true,
+      },
+    },
+  },
+  {
+    'barrett-ruth/import-cost.nvim',
+    build = 'sh install.sh bun',
+    -- if on windows
+    -- build = 'pwsh install.ps1 yarn',
+    config = true,
+  },
+  -- {
+  --   'huggingface/llm.nvim',
+  --   opts = {
+  --     backend = 'ollama',
+  --     model = 'gemma:2b',
+  --     url = 'http://localhost:11434',
+  --     tokens_to_clear = { '<|endoftext|>' },
+  --     request_body = {
+  --       parameters = {
+  --         max_new_tokens = 60,
+  --         temperature = 0.2,
+  --         top_p = 0.95,
+  --       },
+  --     },
+  --     debounce_ms = 150,
+  --     accept_keymap = '<Tab>',
+  --     dismiss_keymap = '<S-Tab>',
+  --     tls_skip_verify_insecure = false,
+  --     lsp = {
+  --       bin_path = nil,
+  --       host = nil,
+  --       port = nil,
+  --       version = '0.5.2',
+  --     },
+  --     tokenizer = nil,
+  --     context_window = 8192,
+  --     enable_suggestions_on_startup = true,
+  --     enable_suggestions_on_files = '*',
+  --   },
+  -- },
+  { 'jose-elias-alvarez/null-ls.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- { 'akinsho/bufferline.nvim', version = '*', dependencies = 'nvim-tree/nvim-web-devicons' },
+  -- {
+  --   'nanozuki/tabby.nvim',
+  --   -- event = 'VimEnter', -- if you want lazy load, see below
+  --   dependencies = 'nvim-tree/nvim-web-devicons',
+  -- },
+  {
+    'romgrk/barbar.nvim',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
+    init = function()
+      vim.g.barbar_auto_setup = false
+    end,
+    opts = {
+      -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
+      -- animation = true,
+      -- insert_at_start = true,
+      -- …etc.
+    },
+    version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
+  {
+    'github/copilot.vim',
+  },
+  {
+    'yetone/avante.nvim',
+    event = 'VeryLazy',
+    version = false, -- Never set this value to "*"! Never!
+    opts = {
+      -- add any opts here
+      -- for example
+      provider = 'ollama',
+      openai = {
+        endpoint = 'http://localhost:11434',
+        model = '', -- your desired model (or use gpt-4o, etc.)
+        timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
+        temperature = 0,
+        max_tokens = 8192, -- Increase this to include reasoning tokens (for reasoning models)
+        --reasoning_effort = "medium", -- low|medium|high, only used for reasoning models
+      },
+    },
+    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+    build = 'make',
+    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'stevearc/dressing.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below dependencies are optional,
+      'echasnovski/mini.pick', -- for file_selector provider mini.pick
+      'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
+      'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
+      'ibhagwan/fzf-lua', -- for file_selector provider fzf
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
+      },
+    },
+  },
+  -- {
+  --   'Exafunction/codeium.vim',
+  --   event = 'BufEnter',
+  -- },
+  -- {
+  --   'Exafunction/codeium.vim',
+  --   config = function()
+  --     -- Change '<C-g>' here to any keycode you like.
+  --     vim.g.codeium_disable_bindings = 1
+  --     vim.g.codeium_enabled = true
+  --     vim.keymap.set('i', '<C-y>', function()
+  --       return vim.fn['codeium#Accept']()
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-n>', function()
+  --       return vim.fn['codeium#CycleCompletions'](1)
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-p>', function()
+  --       return vim.fn['codeium#CycleCompletions'](-1)
+  --     end, { expr = true, silent = true })
+  --     vim.keymap.set('i', '<c-x>', function()
+  --       return vim.fn['codeium#Clear']()
+  --     end, { expr = true, silent = true })
+  --   end,
+  -- },
+  -- {
+  --   'saecki/crates.nvim',
+  --   tag = 'stable',
+  -- },
+  { 'f-person/git-blame.nvim', opts = { enabled = true } },
+  {
+    'ray-x/go.nvim',
+    dependencies = { -- optional packages
+      'ray-x/guihua.lua',
+      'neovim/nvim-lspconfig',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('go').setup()
+    end,
+    event = { 'CmdlineEnter' },
+    ft = { 'go', 'gomod' },
+    build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+  },
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    opts = {},
+    config = function()
+      local highlight = {
+        'RainbowRed',
+        'RainbowYellow',
+        'RainbowBlue',
+        'RainbowOrange',
+        'RainbowGreen',
+        'RainbowViolet',
+        'RainbowCyan',
+      }
+
+      local hooks = require 'ibl.hooks'
+      -- create the highlight groups in the highlight setup hook, so they are reset
+      -- every time the colorscheme changes
+      hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+        vim.api.nvim_set_hl(0, 'RainbowRed', { fg = '#E06C75' })
+        vim.api.nvim_set_hl(0, 'RainbowYellow', { fg = '#E5C07B' })
+        vim.api.nvim_set_hl(0, 'RainbowBlue', { fg = '#61AFEF' })
+        vim.api.nvim_set_hl(0, 'RainbowOrange', { fg = '#D19A66' })
+        vim.api.nvim_set_hl(0, 'RainbowGreen', { fg = '#98C379' })
+        vim.api.nvim_set_hl(0, 'RainbowViolet', { fg = '#C678DD' })
+        vim.api.nvim_set_hl(0, 'RainbowCyan', { fg = '#56B6C2' })
+      end)
+
+      require('ibl').setup { indent = { highlight = highlight } }
+    end,
+  },
+  {
+    'folke/lsp-colors.nvim',
+    config = function()
+      require('lsp-colors').setup {
+        Error = '#db4b4b',
+        Warning = '#e0af68',
+        Information = '#0db9d7',
+        Hint = '#10B981',
+      }
+    end,
+  },
+  -- {
+  --   'nvim-lualine/lualine.nvim',
+  --   dependencies = { 'nvim-tree/nvim-web-devicons' },
+  --   opts = { theme = 'dracula' },
+  -- },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = function()
+      local colors = require('tokyonight.colors').setup()
+      local theme = require 'lualine.themes.auto' -- Change this if you want to switch to a different theme
+      return {
+        options = {
+          component_separators = { left = ' ', right = ' ' },
+          section_separators = { left = ' ', right = ' ' },
+          theme = theme, -- This will now use the theme variable, change it to use a different theme
+          globalstatus = true,
+          disabled_filetypes = { statusline = { 'dashboard', 'alpha' } },
+        },
+        sections = {
+          lualine_a = { { 'mode', icon = 'M' } },
+          lualine_b = {
+            {
+              'branch',
+              icon = '',
+              fmt = function(str)
+                -- Truncate the branch name if it's longer than 15 characters
+                if #str > 15 then
+                  return string.sub(str, 1, 12) .. '...'
+                end
+                return str
+              end,
+            },
+          },
+          lualine_c = {
+            {
+              'diagnostics',
+              symbols = {
+                error = ' ',
+                warn = ' ',
+                info = ' ',
+                hint = '󰝶 ',
+              },
+            },
+            { 'filetype', icon_only = true, separator = '', padding = { left = 1, right = 0 } },
+            {
+              'filename',
+              symbols = { modified = '  ', readonly = '', unnamed = '' },
+            },
+            {
+              function()
+                return require('nvim-navic').get_location()
+              end,
+              cond = function()
+                return package.loaded['nvim-navic'] and require('nvim-navic').is_available()
+              end,
+              color = { fg = colors.green, bg = colors.bg },
+            },
+          },
+          lualine_x = {
+            {
+              function()
+                local clients = vim.lsp.get_clients()
+                if next(clients) == nil then
+                  return ''
+                end
+                local lsp_names = {}
+                for _, client in pairs(clients) do
+                  table.insert(lsp_names, client.name)
+                end
+                return table.concat(lsp_names, ', ')
+              end,
+              icon = ' ',
+              color = { fg = colors.cyan, bg = colors.bg }, -- Adjust colors as needed
+            },
+            {
+              require('lazy.status').updates,
+              cond = require('lazy.status').has_updates,
+              color = { fg = colors.green },
+            },
+            { 'diff' },
+          },
+          lualine_y = {
+            'progress',
+            'location',
+          },
+          lualine_z = {
+            function()
+              return '  ' .. os.date '%X' .. ' 🚀 '
+            end,
+          },
+        },
+        extensions = { 'lazy', 'toggleterm', 'mason', 'neo-tree', 'trouble' },
+      }
+    end,
+  },
+  {
+    'ray-x/navigator.lua',
+    requires = {
+      { 'ray-x/guihua.lua', run = 'cd lua/fzy && make' },
+      { 'neovim/nvim-lspconfig' },
+    },
+  },
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    branch = 'v3.x',
+    requires = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'MunifTanjim/nui.nvim',
+      '3rd/image.nvim', -- Optional image support in preview window: See `# Preview Mode` for more information
+    },
+    config = function()
+      require('neo-tree').setup {
+        window = {
+          position = 'right',
+          width = 20, -- Set the width of the NeoTree window to 40 columns
+        },
+        filesystem = {
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false,
+          },
+          filtered_items = {
+            visible = true,
+            hide_dotfiles = false, -- Show dotfiles in the NeoTree
+            hide_by_name = {
+              'node_modules',
+            },
+          },
+        },
+      }
+    end,
+  },
+  { 'tpope/vim-fugitive' },
+  {
+    'folke/noice.nvim',
+    event = 'VeryLazy',
+    opts = {
+      presets = {
+        bottom_search = true,
+      },
+      popupmenu = {
+        width = 20, -- Adjust the width of the popupmenu
+      },
+      notify = {
+        enabled = true, -- Enable notifications
+        view = 'notify', -- Use 'notify' as the notification view
+        width = 20, -- Adjust the width of notifications
+      },
+    },
+    dependencies = {
+      -- Lazy-load nui.nvim
+      { 'MunifTanjim/nui.nvim' },
+      -- Lazy-load nvim-notify
+      {
+        'rcarriga/nvim-notify',
+        config = function()
+          require('notify').setup {
+            max_width = 50,
+            max_height = math.floor(vim.o.lines * 0.75), -- Set max height to 75% of the screen height
+            timeout = 3000,
+            background_colour = 'FloatShadow',
+            render = 'default', -- The 'default' renderer handles text wrapping
+            -- Required fields to avoid missing fields warning
+            level = 'info', -- Set default level (e.g., "info", "warn", "error")
+            stages = 'fade', -- Animation stages (e.g., "fade", "slide", "fade_in_slide_out")
+            icons = { -- Default icons for each level
+              ERROR = '',
+              WARN = '',
+              INFO = '',
+              DEBUG = '',
+              TRACE = '✎',
+            },
+            time_formats = {}, -- Time format customization
+            minimum_width = 10, -- Minimum width for notifications
+            fps = 30, -- Frames per second for animations
+            top_down = true, -- Notification direction (true = top-down, false = bottom-up)
+          }
+        end,
+      },
+    },
+  },
+  {
+    'kylechui/nvim-surround',
+    version = '*', -- Use for stability; omit to use `main` branch for the latest features
+    event = 'VeryLazy',
+  },
+  --       Old text                    Command         New text
+  -- --------------------------------------------------------------------------------
+  --     surr*ound_words             ysiw)           (surround_words)
+  --     *make strings               ys$"            "make strings"
+  --     [delete ar*ound me!]        ds]             delete around me!
+  --     remove <b>HTML t*ags</b>    dst             remove HTML tags
+  --     'change quot*es'            cs'"            "change quotes"
+  --     <b>or tag* types</b>        csth1<CR>       <h1>or tag types</h1>
+  --     delete(functi*on calls)     dsf             function calls
+  {
+    'folke/trouble.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {
+      display = { wrap = true },
+      auto_close = true,
+      auto_fold = true,
+      height = 5,
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+  },
+  {
+    'mrcjkb/rustaceanvim',
+    version = '^4', -- Recommended
+    ft = { 'rust' },
+  },
+  -- {
+  --   'pmizio/typescript-tools.nvim',
+  --   dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+  --   opts = {},
+  -- },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    after = 'nvim-treesitter',
+    requires = 'nvim-treesitter/nvim-treesitter',
+  },
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -260,8 +859,18 @@ require('lazy').setup({
   --    }
   --
   -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`.
+  --  This is equivalent to:
+  --    require('Comment').setup({})
+
+  -- "gc" to comment
+  -- "gcc" to uncomment
+  { 'numToStr/Comment.nvim', opts = {} },
+  { 'xiyaowong/transparent.nvim' },
+  { 'akinsho/toggleterm.nvim', version = '*', opts = { open_mapping = [[<c-/>]] } },
+  -- Here is a more advanced example where we pass configura-- options to `gitsigns.nvim`. This is equivalent to the following Lua:
+  --    require('gitsigns').setup({ ... })
   --
+  -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -420,7 +1029,6 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -669,7 +1277,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = { cmd = { 'clangd', '--offset-encoding=utf-16' } },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -681,7 +1289,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
-
+        -- gleam = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -754,7 +1362,8 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { css = true }
+        local lsp_format_opt
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
@@ -769,6 +1378,8 @@ require('lazy').setup({
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
+        c = { 'clang-format --style=llvm' },
+        cpp = { 'clang-format --style=llvm' },
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
@@ -779,6 +1390,15 @@ require('lazy').setup({
     'hrsh7th/nvim-cmp',
     event = 'InsertEnter',
     dependencies = {
+      { 'roobert/tailwindcss-colorizer-cmp.nvim', config = true },
+      opts = function(_, opts)
+        -- original LazyVim kind icon formatter
+        local format_kinds = opts.formatting.format
+        opts.formatting.format = function(entry, item)
+          format_kinds(entry, item) -- add icons
+          return require('tailwindcss-colorizer-cmp').formatter(entry, item)
+        end
+      end,
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
@@ -843,7 +1463,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -892,7 +1512,6 @@ require('lazy').setup({
       }
     end,
   },
-
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -912,9 +1531,21 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'tokyonight-storm'
+
+      -- You can configure highlights by doing something like:
+      vim.cmd.hi 'Comment gui=none'
     end,
   },
-
+  -- {
+  --   'scottmckendry/cyberdream.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   init = function()
+  --     vim.cmd.colorscheme 'cyberdream'
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -928,7 +1559,7 @@ require('lazy').setup({
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
       require('mini.ai').setup { n_lines = 500 }
-
+      -- require('mini.indentscope').setup()
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren

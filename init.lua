@@ -275,19 +275,22 @@ vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = 
 -- Normal mode: Undo
 vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
 
--- Visual mode mappings
--- Backspace in visual mode: Undo changes before deleting
 vim.api.nvim_set_keymap('v', '<BS>', '<C-g>u<BS>', { noremap = true })
--- Copy to system clipboard
-vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true })
 -- Copy to system clipboard in insert mode
-vim.api.nvim_set_keymap('i', '<C-c>', '"+y', { noremap = true })
--- Cut to black hole register
-vim.api.nvim_set_keymap('v', '<C-x>', '"_x', { noremap = true })
--- Cut to black hole register in insert mode
-vim.api.nvim_set_keymap('i', '<C-x>', '"_x', { noremap = true })
-
 vim.api.nvim_set_keymap('i', '<C-v>', '<C-o>"+p', { noremap = true, silent = true })
+
+-- Copy selection to system clipboard
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-c>', '"+yy', { noremap = true, silent = true })
+
+-- Cut (delete) selection to system clipboard (so you can paste it later)
+vim.api.nvim_set_keymap('v', '<C-x>', '"+d', { noremap = true, silent = true })
+-- In normal mode, cut (delete) the current line to the clipboard
+vim.api.nvim_set_keymap('n', '<C-x>', '"+dd', { noremap = true, silent = true })
+
+-- Paste from system clipboard in normal and insert modes
+vim.api.nvim_set_keymap('n', '<C-v>', '"+p', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
 
 -- Map Ctrl+S to :w in normal mode
 vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })

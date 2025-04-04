@@ -296,8 +296,10 @@ vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, sil
 
 -- Indent
 vim.keymap.set('n', '<Tab>', '>>', { noremap = true })
+vim.keymap.set('v', '<Tab>', '>gv', { noremap = true })
 -- Unindent
 vim.keymap.set('n', '<S-Tab>', '<<', { noremap = true })
+vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true })
 
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
@@ -829,7 +831,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         c = { 'clang-format --style=llvm' },
         cpp = { 'clang-format --style=llvm' },

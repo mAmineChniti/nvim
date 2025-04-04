@@ -261,16 +261,6 @@ vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true })
 -- Insert mode: Deletes a word backward
 vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true })
 
--- Cursor movement mappings
--- Normal mode: Moves cursor to the beginning of the visual line and enters visual mode
-vim.api.nvim_set_keymap('n', '<C-Left>', '^v', { noremap = true, silent = true })
--- Normal mode: Moves cursor to the end of the visual line and enters visual mode
-vim.api.nvim_set_keymap('n', '<C-Right>', '$v', { noremap = true, silent = true })
--- Insert mode: Moves cursor to the beginning of the visual line and enters visual mode
-vim.api.nvim_set_keymap('i', '<C-Left>', '<Esc>^v', { noremap = true, silent = true })
--- Insert mode: Moves cursor to the end of the visual line and enters visual mode
-vim.api.nvim_set_keymap('i', '<C-Right>', '<Esc>$v', { noremap = true, silent = true })
-
 -- Undo mapping
 -- Normal mode: Undo
 vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })

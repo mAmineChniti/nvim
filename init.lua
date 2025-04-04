@@ -294,6 +294,11 @@ vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = 
 -- Map Ctrl+S to <C-\><C-n>:w in command-line mode
 vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, silent = true })
 
+-- Indent
+vim.keymap.set('n', '<Tab>', '>>', { noremap = true })
+-- Unindent
+vim.keymap.set('n', '<S-Tab>', '<<', { noremap = true })
+
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically

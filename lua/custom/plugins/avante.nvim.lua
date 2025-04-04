@@ -63,16 +63,16 @@ return {
       vim.api.nvim_buf_set_name(buf, 'Avante Key Bindings')
 
       -- Prepare the content
-      local content = { "Avante.nvim Key Bindings:", "" }
+      local content = { 'Avante.nvim Key Bindings:', '' }
       for _, binding in ipairs(key_bindings) do
-        table.insert(content, string.format("%-10s %s", binding.key, binding.desc))
+        table.insert(content, string.format('%-10s %s', binding.key, binding.desc))
       end
 
       -- Set the buffer content
       vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
 
       -- Open the buffer in a new window
-      vim.cmd('new')
+      vim.cmd 'new'
       vim.api.nvim_win_set_buf(0, buf)
       vim.api.nvim_win_set_option(0, 'wrap', false)
       vim.api.nvim_buf_set_option(buf, 'modifiable', false)
@@ -84,7 +84,7 @@ return {
     -- for example
     provider = 'ollama',
     ollama = {
-      model = 'codellama:13b',
+      model = 'codellama:70b',
     },
   },
   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`

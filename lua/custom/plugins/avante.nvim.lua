@@ -9,6 +9,13 @@ return {
     ollama = {
       model = 'codellama:7b',
     },
+    web_search_engine = {
+      provider = 'google', -- Options: "tavily", "serpapi", "searchapi", "google", or "kagi"
+    },
+    behaviour = {
+      minimize_diff = true,
+      enable_cursor_planning_mode = true, -- enable inline suggestions like Cursor
+    },
   },
   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
   build = 'make',

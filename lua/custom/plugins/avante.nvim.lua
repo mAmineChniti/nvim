@@ -7,7 +7,7 @@ return {
     -- for example
     provider = 'ollama',
     ollama = {
-      model = 'codellama:70b',
+      model = 'codellama:13b',
     },
   },
   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`

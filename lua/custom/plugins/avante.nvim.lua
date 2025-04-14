@@ -1,60 +1,71 @@
 return {
   'yetone/avante.nvim',
   event = 'VeryLazy',
-  version = false, -- Never set this value to "*"! Never!
+  version = false,
   opts = {
-    -- add any opts here
-    -- for example
-    provider = 'ollama',
+    -- provider = 'ollama',
+    -- ollama = {
+    --   model = 'codellama:7b',
+    --   timeout = 120000,
+    -- },
+    provider = 'gemini',
+    gemini = {
+      model = 'gemini-2.0-flash',
+      timeout = 120000,
+    },
     ollama = {
-      model = 'codellama:7b',
+      endpoint = 'http://127.0.0.1:11434',
+      timeout = 30000, -- Timeout in milliseconds
+      options = {
+        temperature = 0,
+        num_ctx = 20480,
+      },
+    },
+    vendors = {
+      ---@type AvanteSupportedProvider
+      ['ollama-codellama'] = {
+        __inherited_from = 'ollama',
+        model = 'codellama:7b', -- put what you need here or nothing?
+        timeout = 30000, -- Timeout in milliseconds
+        temperature = 0,
+        max_tokens = 8192,
+      },
     },
     web_search_engine = {
-      provider = 'google', -- Options: "tavily", "serpapi", "searchapi", "google", or "kagi"
+      provider = 'google',
     },
     behaviour = {
-      minimize_diff = true,
-      enable_cursor_planning_mode = true, -- enable inline suggestions like Cursor
+      minimize_diff = false,
+      enable_cursor_planning_mode = true,
     },
   },
-  -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
   build = 'make',
-  -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
     'stevearc/dressing.nvim',
     'nvim-lua/plenary.nvim',
     'MunifTanjim/nui.nvim',
-    --- The below dependencies are optional,
-    'echasnovski/mini.pick', -- for file_selector provider mini.pick
-    'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
-    'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
-    'ibhagwan/fzf-lua', -- for file_selector provider fzf
-    'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-    'zbirenbaum/copilot.lua', -- for providers='copilot'
+    'echasnovski/mini.pick',
+    'nvim-telescope/telescope.nvim',
+    'hrsh7th/nvim-cmp',
+    'ibhagwan/fzf-lua',
+    'nvim-tree/nvim-web-devicons',
+    'zbirenbaum/copilot.lua',
     {
-      -- support for image pasting
       'HakonHarnes/img-clip.nvim',
       event = 'VeryLazy',
       opts = {
-        -- recommended settings
         default = {
           embed_image_as_base64 = false,
           prompt_for_file_name = false,
-          drag_and_drop = {
-            insert_mode = true,
-          },
-          -- required for Windows users
+          drag_and_drop = { insert_mode = true },
           use_absolute_path = true,
         },
       },
     },
     {
-      -- Make sure to set this up properly if you have lazy=true
       'MeanderingProgrammer/render-markdown.nvim',
-      opts = {
-        file_types = { 'markdown', 'Avante' },
-      },
+      opts = { file_types = { 'markdown', 'Avante' } },
       ft = { 'markdown', 'Avante' },
     },
   },

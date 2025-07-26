@@ -824,12 +824,27 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        python = { 'isort', 'black' },
         c = { 'clang-format --style=llvm' },
         cpp = { 'clang-format --style=llvm' },
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        python = function()
+          local available = require('conform').list_formatters_by_ft().python or {}
+          local names = vim.tbl_map(function(f)
+            return f.name
+          end, available)
+          return names
+        end,
       },
     },
+    config = function(_, opts)
+      require('conform').setup(opts)
+      vim.api.nvim_create_autocmd('BufReadPost', {
+        pattern = '*.py',
+        callback = function()
+          require('conform').format { lsp_fallback = true }
+        end,
+      })
+    end,
   },
 
   { -- Autocompletion

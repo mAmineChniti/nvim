@@ -20,6 +20,7 @@
 =====================================================================
 =====================================================================
 
+
 What is Kickstart?
 
   Kickstart.nvim is *not* a distribution.
@@ -90,8 +91,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+-- Set to true if you have a Nerd Font installed
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -102,7 +103,7 @@ vim.g.have_nerd_font = false
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -245,10 +246,72 @@ rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
+
+-- Navigation mappings
+-- Normal mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('', '<Right>', 'col(".") == col("$") - 1 ? "<Esc>j^" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Normal mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('', '<Left>', 'col(".") == 1 ? "<Esc>k$" : "<Left>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Right arrow moves to the end of line and down if already at the end
+vim.api.nvim_set_keymap('i', '<Right>', 'col(".") == col("$") ? "<C-o>:normal! j^<CR>" : "<Right>"', { noremap = true, expr = true, silent = true })
+-- Insert mode: Left arrow moves to the beginning of line and up if already at the beginning
+vim.api.nvim_set_keymap('i', '<Left>', 'col(".") == 1 ? "<C-o>:normal! k$<CR>" : "<Left>"', { noremap = true, expr = true, silent = true })
+
+-- Selection mappings
+-- Normal mode: Selects from current cursor position to the beginning of the first line
+vim.api.nvim_set_keymap('n', '<C-a>', 'ggVG', { noremap = true })
+-- Visual mode: Selects entire buffer
+vim.api.nvim_set_keymap('v', '<C-a>', '<Esc>ggVG', { noremap = true })
+-- Insert mode: Selects entire buffer
+vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true })
+
+-- Deletion mappings
+-- Insert mode: Deletes a word backward
+vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true })
+
+-- Undo mapping
+-- Normal mode: Undo
+vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
+
+vim.api.nvim_set_keymap('v', '<BS>', '<C-g>u<BS>', { noremap = true })
+-- Copy to system clipboard in insert mode
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-o>"+p', { noremap = true, silent = true })
+
+-- Copy selection to system clipboard
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-c>', '"+yy', { noremap = true, silent = true })
+
+-- Cut (delete) selection to system clipboard (so you can paste it later)
+vim.api.nvim_set_keymap('v', '<C-x>', '"+d', { noremap = true, silent = true })
+-- In normal mode, cut (delete) the current line to the clipboard
+vim.api.nvim_set_keymap('n', '<C-x>', '"+dd', { noremap = true, silent = true })
+
+-- Paste from system clipboard in normal and insert modes
+vim.api.nvim_set_keymap('n', '<C-v>', '"+p', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
+
+-- Map Ctrl+S to :w in normal mode
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <Esc>:w in insert mode
+vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
+
+-- Map Ctrl+S to :w in visual mode
+vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = true })
+
+-- Map Ctrl+S to <C-\><C-n>:w in command-line mode
+vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, silent = true })
+
+-- Indent
+vim.keymap.set('n', '<Tab>', '>>', { noremap = true })
+vim.keymap.set('v', '<Tab>', '>gv', { noremap = true })
+-- Unindent
+vim.keymap.set('n', '<S-Tab>', '<<', { noremap = true })
+vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true })
+
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
-
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -268,7 +331,8 @@ require('lazy').setup({
   --    }
   --
   -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`.
+  -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
+  --    require('gitsigns').setup({ ... })
   --
   -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -423,7 +487,6 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -671,7 +734,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = { cmd = { 'clangd', '--offset-encoding=utf-16' } },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -683,7 +746,7 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
-
+        -- gleam = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -756,7 +819,8 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { css = true }
+        local lsp_format_opt
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
@@ -768,13 +832,27 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        c = { 'clang-format --style=llvm' },
+        cpp = { 'clang-format --style=llvm' },
+        javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        python = function()
+          local available = require('conform').list_formatters_by_ft().python or {}
+          local names = vim.tbl_map(function(f)
+            return f.name
+          end, available)
+          return names
+        end,
       },
     },
+    config = function(_, opts)
+      require('conform').setup(opts)
+      vim.api.nvim_create_autocmd('BufReadPost', {
+        pattern = '*.py',
+        callback = function()
+          require('conform').format { lsp_fallback = true }
+        end,
+      })
+    end,
   },
 
   { -- Autocompletion
@@ -782,7 +860,16 @@ require('lazy').setup({
     event = 'VimEnter',
     version = '1.*',
     dependencies = {
-      -- Snippet Engine
+      { 'roobert/tailwindcss-colorizer-cmp.nvim', config = true },
+      opts = function(_, opts)
+        -- original LazyVim kind icon formatter
+        local format_kinds = opts.formatting.format
+        opts.formatting.format = function(entry, item)
+          format_kinds(entry, item) -- add icons
+          return require('tailwindcss-colorizer-cmp').formatter(entry, item)
+        end
+      end,
+      -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
         version = '2.*',
@@ -875,7 +962,6 @@ require('lazy').setup({
       signature = { enabled = true },
     },
   },
-
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -895,9 +981,12 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'tokyonight-storm'
+
+      -- You can configure highlights by doing something like:
+      vim.cmd.hi 'Comment gui=none'
     end,
   },
-
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
@@ -911,7 +1000,7 @@ require('lazy').setup({
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
       require('mini.ai').setup { n_lines = 500 }
-
+      -- require('mini.indentscope').setup()
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
@@ -984,7 +1073,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!

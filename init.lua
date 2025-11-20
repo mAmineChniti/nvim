@@ -222,6 +222,37 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
+ 
+-- Hide Copilot inline suggestions while completion menu is open.
+-- Supports native `nvim-cmp` and `blink.cmp` (which emits User autocommands).
+do
+  -- nvim-cmp integration (if cmp is present)
+  local ok_cmp, cmp = pcall(require, 'cmp')
+  if ok_cmp and cmp and cmp.event and cmp.event.on then
+    cmp.event:on('menu_opened', function()
+      vim.b.copilot_suggestion_hidden = true
+    end)
+
+    cmp.event:on('menu_closed', function()
+      vim.b.copilot_suggestion_hidden = false
+    end)
+  end
+
+  -- blink.cmp exposes User autocommands when its menu opens/closes
+  vim.api.nvim_create_autocmd('User', {
+    pattern = 'BlinkCmpMenuOpen',
+    callback = function()
+      vim.b.copilot_suggestion_hidden = true
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('User', {
+    pattern = 'BlinkCmpMenuClose',
+    callback = function()
+      vim.b.copilot_suggestion_hidden = false
+    end,
+  })
+end
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
@@ -347,6 +378,7 @@ require('lazy').setup({
       },
     },
   },
+
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -606,6 +638,13 @@ require('lazy').setup({
           -- or a suggestion from your LSP for this to activate.
           map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
 
+          -- Backwards-compatible mapping: many configs used `<leader>cd` to
+          -- apply code actions (for example, add missing imports). Add both
+          -- a normal-mode mapping and a visual-range mapping to replicate
+          -- that behaviour.
+          map('<leader>cd', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n' })
+          map('<leader>cd', function() vim.lsp.buf.range_code_action() end, '[C]ode [A]ction (Range)', { 'x' })
+
           -- Find references for the word under your cursor.
           map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
 
@@ -861,6 +900,10 @@ require('lazy').setup({
     version = '1.*',
     dependencies = {
       { 'roobert/tailwindcss-colorizer-cmp.nvim', config = true },
+      -- Avante compatibility source for blink.cmp
+      'Kaiser-Yang/blink-cmp-avante',
+        -- blink.cmp integration for Copilot
+        'giuxtaposition/blink-cmp-copilot',
       opts = function(_, opts)
         -- original LazyVim kind icon formatter
         local format_kinds = opts.formatting.format
@@ -922,7 +965,10 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        -- Use the 'enter' preset so <CR> accepts the selected completion item.
+        -- Preset 'enter' configures Enter as the accept key and applies
+        -- sensible behavior when the menu is visible vs not.
+        preset = 'enter',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -941,8 +987,25 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        -- Include Copilot and Avante as blink.cmp sources so suggestions
+        -- appear in the completion menu alongside LSP/snippets/path.
+        -- Note: Luasnip is now provided via the `snippets` source using
+        -- `snippets.preset = 'luasnip'` (see plugin docs). Use 'snippets'
+        -- here instead of 'luasnip'.
+        default = { 'copilot', 'avante', 'lsp', 'path', 'snippets', 'buffer' },
         providers = {
+          -- Avante blink.compat adapter
+          avante = {
+            module = 'blink-cmp-avante',
+            name = 'Avante',
+            opts = {},
+          },
+          -- Copilot adapter for blink.cmp
+          copilot = {
+            module = 'blink-cmp-copilot',
+            name = 'Copilot',
+            opts = {},
+          },
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },

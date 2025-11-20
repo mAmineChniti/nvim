@@ -10,7 +10,7 @@ return {
   config = function()
     require('neo-tree').setup {
       window = {
-        position = 'right',
+        position = 'left',
         width = 20, -- Set the width of the NeoTree window to 20 columns
       },
       filesystem = {

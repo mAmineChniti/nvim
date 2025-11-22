@@ -852,43 +852,32 @@ require('lazy').setup({
         desc = '[F]ormat buffer',
       },
     },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { css = true }
-        local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
-        end
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        c = { 'clang-format --style=llvm' },
-        cpp = { 'clang-format --style=llvm' },
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        python = function()
-          local available = require('conform').list_formatters_by_ft().python or {}
-          local names = vim.tbl_map(function(f)
-            return f.name
-          end, available)
-          return names
-        end,
-      },
-    },
-    config = function(_, opts)
-      require('conform').setup(opts)
-      vim.api.nvim_create_autocmd('BufReadPost', {
-        pattern = '*.py',
-        callback = function()
-          require('conform').format { lsp_fallback = true }
+    config = function()
+      local conform = require('conform')
+      
+      conform.setup({
+        notify_on_error = false,
+        format_on_save = {
+          timeout_ms = 500,
+          lsp_fallback = true,
+        },
+      })
+      
+      -- Auto-detect and use any available formatters from Mason
+      vim.api.nvim_create_autocmd('BufWritePre', {
+        callback = function(args)
+          local all_formatters = conform.list_all_formatters()
+          local available = {}
+          
+          for _, fmt in ipairs(all_formatters) do
+            if fmt.available then
+              table.insert(available, fmt.name)
+            end
+          end
+          
+          if #available > 0 then
+            conform.format({ bufnr = args.buf, lsp_fallback = true })
+          end
         end,
       })
     end,

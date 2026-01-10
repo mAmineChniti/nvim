@@ -892,7 +892,7 @@ require('lazy').setup({
       -- Avante compatibility source for blink.cmp
       'Kaiser-Yang/blink-cmp-avante',
         -- blink.cmp integration for Copilot
-        'giuxtaposition/blink-cmp-copilot',
+        -- 'giuxtaposition/blink-cmp-copilot',
       opts = function(_, opts)
         -- original LazyVim kind icon formatter
         local format_kinds = opts.formatting.format
@@ -981,7 +981,7 @@ require('lazy').setup({
         -- Note: Luasnip is now provided via the `snippets` source using
         -- `snippets.preset = 'luasnip'` (see plugin docs). Use 'snippets'
         -- here instead of 'luasnip'.
-        default = { 'copilot', 'avante', 'lsp', 'path', 'snippets', 'buffer' },
+        default = { 'avante', 'lsp', 'path', 'snippets', 'buffer' },
         providers = {
           -- Avante blink.compat adapter
           avante = {
@@ -989,12 +989,12 @@ require('lazy').setup({
             name = 'Avante',
             opts = {},
           },
-          -- Copilot adapter for blink.cmp
-          copilot = {
-            module = 'blink-cmp-copilot',
-            name = 'Copilot',
-            opts = {},
-          },
+          -- Copilot adapter disabled since copilot.lua is disabled
+          -- copilot = {
+          --   module = 'blink-cmp-copilot',
+          --   name = 'Copilot',
+          --   opts = {},
+          -- },
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },

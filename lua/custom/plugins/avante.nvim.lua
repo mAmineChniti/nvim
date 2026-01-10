@@ -1,68 +1,58 @@
 return {
-  'yetone/avante.nvim',
-  build = 'make',
-  event = 'VeryLazy',
+  "yetone/avante.nvim",
+  -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+  -- ⚠️ must add this setting! ! !
+  build = vim.fn.has("win32") ~= 0
+      and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+      or "make",
+  event = "VeryLazy",
   version = false, -- Never set this value to "*"! Never!
   ---@module 'avante'
   ---@type avante.Config
   opts = {
-    provider = 'gemini',
+    -- add any opts here
+    -- this file can contain specific instructions for your project
+    instructions_file = "avante.md",
+    -- for example: prefer Ollama as the provider
+    provider = "ollama",
     providers = {
-      gemini = {
-        endpoint = nil, -- only needed if not default
-        model = 'gemini-2.0-flash',
-        timeout = 120000,
-        extra_request_body = {},
-      },
       ollama = {
-        endpoint = 'http://127.0.0.1:11434',
-        model = nil, -- you can omit or set default
-        timeout = 30000,
-        extra_request_body = {
-          options = {
-            temperature = 0,
-            num_ctx = 20480,
-          },
-        },
+        -- Ollama model to use
+        model = "qwen2.5-coder:7b",
+        -- Ollama endpoint (default: http://127.0.0.1:11434)
+        endpoint = "http://127.0.0.1:11434",
+        -- Required to properly enable Ollama - wrapped in function to delay loading
+        is_env_set = function()
+          return pcall(require, "avante.providers.ollama") and require("avante.providers.ollama").check_endpoint_alive()
+        end,
       },
-      ['ollama-codellama'] = {
-        __inherited_from = 'ollama',
-        model = 'codellama:7b',
-        timeout = 30000,
-        extra_request_body = {
-          temperature = 0,
-          max_tokens = 8192,
-        },
-      },
-    },
-    web_search_engine = { provider = 'google' },
-    behaviour = {
-      minimize_diff = false,
-      enable_cursor_planning_mode = true,
     },
   },
   dependencies = {
-    'nvim-lua/plenary.nvim',
-    'MunifTanjim/nui.nvim',
-    'echasnovski/mini.pick',
-    'nvim-telescope/telescope.nvim',
-    'hrsh7th/nvim-cmp',
-    'ibhagwan/fzf-lua',
-    'stevearc/dressing.nvim',
-    'folke/snacks.nvim',
-    'nvim-tree/nvim-web-devicons',
-    'zbirenbaum/copilot.lua',
+    "nvim-lua/plenary.nvim",
+    "MunifTanjim/nui.nvim",
+    --- The below dependencies are optional,
+    "nvim-mini/mini.pick", -- for file_selector provider mini.pick
+    "nvim-telescope/telescope.nvim", -- for file_selector provider telescope
+    "hrsh7th/nvim-cmp", -- autocompletion for avante commands and mentions
+    "ibhagwan/fzf-lua", -- for file_selector provider fzf
+    "stevearc/dressing.nvim", -- for input provider dressing
+    "folke/snacks.nvim", -- for input provider snacks
+    "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
+    "zbirenbaum/copilot.lua", -- for providers='copilot'
     {
       -- support for image pasting
-      'HakonHarnes/img-clip.nvim',
-      event = 'VeryLazy',
+      "HakonHarnes/img-clip.nvim",
+      event = "VeryLazy",
       opts = {
+        -- recommended settings
         default = {
           embed_image_as_base64 = false,
           prompt_for_file_name = false,
           drag_and_drop = {
             insert_mode = true,
           },
+          -- required for Windows users
           use_absolute_path = true,
         },
       },
@@ -71,9 +61,9 @@ return {
       -- Make sure to set this up properly if you have lazy=true
       'MeanderingProgrammer/render-markdown.nvim',
       opts = {
-        file_types = { 'markdown', 'Avante' },
+        file_types = { "markdown", "Avante" },
       },
-      ft = { 'markdown', 'Avante' },
+      ft = { "markdown", "Avante" },
     },
   },
 }

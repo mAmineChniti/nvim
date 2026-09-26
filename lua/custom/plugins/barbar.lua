@@ -13,5 +13,11 @@ return {
     -- insert_at_start = true,
     -- …etc.
   },
+  -- NOTE: no Shift-key bindings (broken Shift keys): [b / ]b cycle buffers.
+  keys = {
+    { '[b', '<cmd>BufferPrevious<cr>', desc = 'Prev buffer' },
+    { ']b', '<cmd>BufferNext<cr>', desc = 'Next buffer' },
+    { '<leader>bd', '<cmd>BufferClose<cr>', desc = 'Close buffer' },
+  },
   -- version = '^1.0.0', -- optional: only update when a new 1.x version is released
 }

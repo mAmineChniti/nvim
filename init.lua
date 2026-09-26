@@ -174,6 +174,9 @@ vim.o.confirm = true
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- NOTE: no insert-mode <Esc> mapping on purpose: Copilot's <Esc> handler
+-- (dismiss ghost + exit insert, set on InsertEnter) owns that key.
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -222,7 +225,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
- 
+
 -- Hide Copilot inline suggestions while completion menu is open.
 -- Supports native `nvim-cmp` and `blink.cmp` (which emits User autocommands).
 do
@@ -278,67 +281,71 @@ rtp:prepend(lazypath)
 --
 -- NOTE: Here is where you install your plugins.
 
--- Navigation mappings
--- Normal mode: Right arrow moves to the end of line and down if already at the end
-vim.api.nvim_set_keymap('', '<Right>', 'col(".") == col("$") - 1 ? "<Esc>j^" : "<Right>"', { noremap = true, expr = true, silent = true })
+
+
+  -- Navigation mappings (normal mode ONLY: the old global '' mapping broke
+  -- Telescope, floating windows and terminal buffers by hijacking their arrows)
+vim.api.nvim_set_keymap('n', '<Right>', 'col(".") == col("$") - 1 ? "<Esc>j^" : "<Right>"',
+  { noremap = true, expr = true, silent = true, desc = 'Right (wrap to next line at EOL)' })
 -- Normal mode: Left arrow moves to the beginning of line and up if already at the beginning
-vim.api.nvim_set_keymap('', '<Left>', 'col(".") == 1 ? "<Esc>k$" : "<Left>"', { noremap = true, expr = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Left>', 'col(".") == 1 ? "<Esc>k$" : "<Left>"',
+  { noremap = true, expr = true, silent = true, desc = 'Left (wrap to prev line at BOL)' })
 -- Insert mode: Right arrow moves to the end of line and down if already at the end
-vim.api.nvim_set_keymap('i', '<Right>', 'col(".") == col("$") ? "<C-o>:normal! j^<CR>" : "<Right>"', { noremap = true, expr = true, silent = true })
+vim.api.nvim_set_keymap('i', '<Right>', 'col(".") == col("$") ? "<C-o>:normal! j^<CR>" : "<Right>"',
+  { noremap = true, expr = true, silent = true, desc = 'Right (wrap to next line at EOL)' })
 -- Insert mode: Left arrow moves to the beginning of line and up if already at the beginning
-vim.api.nvim_set_keymap('i', '<Left>', 'col(".") == 1 ? "<C-o>:normal! k$<CR>" : "<Left>"', { noremap = true, expr = true, silent = true })
+vim.api.nvim_set_keymap('i', '<Left>', 'col(".") == 1 ? "<C-o>:normal! k$<CR>" : "<Left>"',
+  { noremap = true, expr = true, silent = true, desc = 'Left (wrap to prev line at BOL)' })
 
 -- Selection mappings
 -- Normal mode: Selects from current cursor position to the beginning of the first line
-vim.api.nvim_set_keymap('n', '<C-a>', 'ggVG', { noremap = true })
+vim.api.nvim_set_keymap('n', '<C-a>', 'ggVG', { noremap = true, desc = 'Select entire buffer' })
 -- Visual mode: Selects entire buffer
-vim.api.nvim_set_keymap('v', '<C-a>', '<Esc>ggVG', { noremap = true })
+vim.api.nvim_set_keymap('v', '<C-a>', '<Esc>ggVG', { noremap = true, desc = 'Select entire buffer' })
 -- Insert mode: Selects entire buffer
-vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true })
+vim.api.nvim_set_keymap('i', '<C-a>', '<Esc>ggVG', { noremap = true, desc = 'Select entire buffer' })
 
 -- Deletion mappings
 -- Insert mode: Deletes a word backward
-vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<Del>', '<C-O>daw', { noremap = true, silent = true, desc = 'Delete word backward' })
 
 -- Undo mapping
 -- Normal mode: Undo
-vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true })
+vim.api.nvim_set_keymap('n', '<C-z>', 'u', { noremap = true, desc = 'Undo' })
 
-vim.api.nvim_set_keymap('v', '<BS>', '<C-g>u<BS>', { noremap = true })
--- Copy to system clipboard in insert mode
-vim.api.nvim_set_keymap('i', '<C-v>', '<C-o>"+p', { noremap = true, silent = true })
+-- Visual <BS> deletes the selection to the black-hole register (plain delete,
+-- no clipboard clobber, no mode-switching side effects).
+vim.api.nvim_set_keymap('v', '<BS>', '"_d', { noremap = true, silent = true, desc = 'Delete selection (no yank)' })
 
 -- Copy selection to system clipboard
-vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<C-c>', '"+yy', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { noremap = true, silent = true, desc = 'Copy selection to clipboard' })
+vim.api.nvim_set_keymap('n', '<C-c>', '"+yy', { noremap = true, silent = true, desc = 'Copy line to clipboard' })
 
 -- Cut (delete) selection to system clipboard (so you can paste it later)
-vim.api.nvim_set_keymap('v', '<C-x>', '"+d', { noremap = true, silent = true })
--- In normal mode, cut (delete) the current line to the clipboard
-vim.api.nvim_set_keymap('n', '<C-x>', '"+dd', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-x>', '"+d', { noremap = true, silent = true, desc = 'Cut selection to clipboard' })
+-- NOTE: no normal-mode <C-x> line-cut on purpose: it stomped <C-x> uses in
+-- plugins/terminal and one stray keypress nuked a whole line to clipboard.
 
 -- Paste from system clipboard in normal and insert modes
-vim.api.nvim_set_keymap('n', '<C-v>', '"+p', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '<C-v>', '<C-r>+', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-v>', '"+p', { noremap = true, silent = true, desc = 'Paste from clipboard' })
+vim.api.nvim_set_keymap('i', '<C-v>', '<C-r>+', { noremap = true, silent = true, desc = 'Paste from clipboard' })
 
 -- Map Ctrl+S to :w in normal mode
-vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true, desc = 'Save file' })
 
--- Map Ctrl+S to <Esc>:w in insert mode
-vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
+-- Map Ctrl+S to <Esc>:w in insert mode (`gi` returns to the exact spot;
+-- the old trailing `a` re-entered insert one character to the right)
+vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>gi', { noremap = true, silent = true, desc = 'Save file' })
 
 -- Map Ctrl+S to :w in visual mode
-vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>', { noremap = true, silent = true, desc = 'Save file' })
 
--- Map Ctrl+S to <C-\><C-n>:w in command-line mode
-vim.api.nvim_set_keymap('c', '<C-s>', '<C-\\><C-n>:w<CR>', { noremap = true, silent = true })
-
--- Indent
-vim.keymap.set('n', '<Tab>', '>>', { noremap = true })
-vim.keymap.set('v', '<Tab>', '>gv', { noremap = true })
+-- Indent (conflicts with Copilot Tab - only use in visual mode)
+-- vim.keymap.set('n', '<Tab>', '>>', { noremap = true })
+vim.keymap.set('v', '<Tab>', '>gv', { noremap = true, desc = 'Indent selection' })
 -- Unindent
-vim.keymap.set('n', '<S-Tab>', '<<', { noremap = true })
-vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true })
+vim.keymap.set('n', '<S-Tab>', '<<', { noremap = true, desc = 'Unindent line' })
+vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true, desc = 'Unindent selection' })
 
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
@@ -376,9 +383,58 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
+      on_attach = function(bufnr)
+        local gitsigns = require 'gitsigns'
+
+        local function map(mode, l, r, opts)
+          opts = opts or {}
+          opts.buffer = bufnr
+          vim.keymap.set(mode, l, r, opts)
+        end
+
+        -- Navigation
+        map('n', ']c', function()
+          if vim.wo.diff then
+            vim.cmd.normal { ']c', bang = true }
+          else
+            gitsigns.nav_hunk 'next'
+          end
+        end, { desc = 'Jump to next git [c]hange' })
+
+        map('n', '[c', function()
+          if vim.wo.diff then
+            vim.cmd.normal { '[c', bang = true }
+          else
+            gitsigns.nav_hunk 'prev'
+          end
+        end, { desc = 'Jump to previous git [c]hange' })
+
+        -- Actions
+        -- visual mode
+        map('v', '<leader>hs', function()
+          gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'git [s]tage hunk' })
+        map('v', '<leader>hr', function()
+          gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'git [r]eset hunk' })
+        -- normal mode
+        map('n', '<leader>hs', gitsigns.stage_hunk, { desc = 'git [s]tage hunk' })
+        map('n', '<leader>hr', gitsigns.reset_hunk, { desc = 'git [r]eset hunk' })
+        map('n', '<leader>hS', gitsigns.stage_buffer, { desc = 'git [S]tage buffer' })
+        map('n', '<leader>hu', gitsigns.stage_hunk, { desc = 'git [u]ndo stage hunk' })
+        map('n', '<leader>hR', gitsigns.reset_buffer, { desc = 'git [R]eset buffer' })
+        map('n', '<leader>hp', gitsigns.preview_hunk, { desc = 'git [p]review hunk' })
+        map('n', '<leader>hb', gitsigns.blame_line, { desc = 'git [b]lame line' })
+        map('n', '<leader>hd', gitsigns.diffthis, { desc = 'git [d]iff against index' })
+        map('n', '<leader>hD', function()
+          gitsigns.diffthis '@'
+        end, { desc = 'git [D]iff against last commit' })
+        -- Toggles
+        map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
+        map('n', '<leader>tD', gitsigns.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
+      end,
     },
   },
-
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -394,7 +450,7 @@ require('lazy').setup({
   -- Then, because we use the `opts` key (recommended), the configuration runs
   -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -443,6 +499,25 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>c', group = '[C]ode/Snippets' },
+        { '<leader>a', group = '[A]I/Copilot/Shadcn' },
+        { '<leader>l', group = '[L]aravel' },
+        { '<leader>d', group = '[D]ebug' },
+        { '<leader>x', group = 'Trouble' },
+        -- Documentation-only entries (no rhs = no mapping created, just a
+        -- label in the guide). These keys are set internally by their
+        -- plugins without descriptions, so they would otherwise show up
+        -- blank (or not at all) when you forget them.
+        -- Copilot ghost-text keys (insert mode, set by copilot.lua):
+        { '<C-y>', desc = 'Copilot: accept suggestion', mode = 'i' },
+        { '<M-w>', desc = 'Copilot: accept word', mode = 'i' },
+        { '<C-l>', desc = 'Copilot: accept line', mode = 'i' },
+        { '<M-n>', desc = 'Copilot: next suggestion', mode = 'i' },
+        { '<M-p>', desc = 'Copilot: prev suggestion', mode = 'i' },
+        { '<C-d>', desc = 'Copilot: dismiss suggestion', mode = 'i' },
+        -- Built-in diagnostic jumps (no desc by default):
+        { '[d', desc = 'Prev diagnostic' },
+        { ']d', desc = 'Next diagnostic' },
       },
     },
   },
@@ -475,7 +550,7 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -582,7 +657,7 @@ require('lazy').setup({
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',    opts = {} },
 
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
@@ -643,7 +718,9 @@ require('lazy').setup({
           -- a normal-mode mapping and a visual-range mapping to replicate
           -- that behaviour.
           map('<leader>cd', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n' })
-          map('<leader>cd', function() vim.lsp.buf.range_code_action() end, '[C]ode [A]ction (Range)', { 'x' })
+          map('<leader>cd', function()
+            vim.lsp.buf.range_code_action()
+          end, '[C]ode [A]ction (Range)', { 'x' })
 
           -- Find references for the word under your cursor.
           map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -774,18 +851,71 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = { cmd = { 'clangd', '--offset-encoding=utf-16' } },
+        intelephense = {},
+        pyright = {},
+        tailwindcss = {}, -- class completions (Next.js / shadcn projects)
+        emmet_language_server = {}, -- Emmet expansions in html/css/blade/etc.
         -- gopls = {},
-        -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
-        -- gleam = {},
+
+        -- TypeScript Language Server for Angular 18 + NestJS development
+        -- Provides diagnostics, completions, and code actions for TypeScript/JavaScript
+        ts_ls = {
+          filetypes = {
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+          },
+          settings = {
+            typescript = {
+              -- Inlay hints for better code understanding
+              inlayHints = {
+                includeInlayParameterNameHints = 'all',
+                includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                includeInlayFunctionParameterTypeHints = true,
+                includeInlayVariableTypeHints = true,
+                includeInlayPropertyDeclarationTypeHints = true,
+                includeInlayFunctionLikeReturnTypeHints = true,
+                includeInlayEnumMemberValueHints = true,
+              },
+              suggest = {
+                completeFunctionCalls = true,
+                includeAutomaticOptionalChainCompletions = true,
+                includeCompletionsForImportStatements = true,
+              },
+              preferences = {
+                -- NOTE: no quoteStyle / importModuleSpecifier overrides here.
+                -- Completions defer to each project's own config: prettier
+                -- decides quotes, tsconfig paths (e.g. `@/*`) decide import
+                -- style. Hardcoding 'single'/'relative' caused every save to
+                -- rewrite what completions had just inserted.
+              },
+            },
+            javascript = {
+              inlayHints = {
+                includeInlayParameterNameHints = 'all',
+                includeInlayFunctionParameterTypeHints = true,
+                includeInlayVariableTypeHints = true,
+              },
+            },
+          },
+          init_options = {
+            preferences = {
+              includeCompletionsWithSnippetText = true,
+              includeCompletionsForImportStatements = true,
+            },
+          },
+        },
+
+        -- ESLint LSP for linting TypeScript/JavaScript
+        eslint = {
+          settings = {
+            workingDirectories = { mode = 'auto' },
+          },
+        },
+
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -818,6 +948,14 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        -- TypeScript/Angular/NestJS/Next.js development tools
+        'prettier', -- Code formatter for JS/TS/HTML/CSS
+        'prettierd', -- Fast prettier daemon (conform tries this first)
+        'eslint_d', -- Fast eslint daemon (used via eslint LSP / code actions)
+        'ruff', -- Python formatter + import sorter (conform: ruff_format)
+        'blade-formatter', -- Blade template formatter (conform)
+        'typescript-language-server', -- TypeScript LSP (handled via ts_ls config above)
+        'eslint-lsp', -- ESLint integration
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -853,33 +991,76 @@ require('lazy').setup({
       },
     },
     config = function()
-      local conform = require('conform')
-      
-      conform.setup({
+      local conform = require 'conform'
+
+      -- Project-aware formatting:
+      -- * `prettier` uses `util.from_node_modules`, so a project-local
+      --   `node_modules/.bin/prettier` (e.g. portfolio's prettier 3 + tailwind
+      --   plugin) wins over Mason's copy automatically.
+      -- * prettier resolves its config (`.prettierrc*`, `prettier.config.*`,
+      --   `package.json#prettier`) by walking up from the FILE being formatted
+      --   (`--stdin-filepath`), not from nvim's cwd — so per-repo config is
+      --   respected with zero extra setup, and repos without a config file
+      --   just get prettier defaults (same as `prettier --write .`).
+      -- * `stylua` respects `.stylua.toml` the same way.
+      conform.setup {
         notify_on_error = false,
-        format_on_save = {
-          timeout_ms = 500,
-          lsp_fallback = true,
-        },
-      })
-      
-      -- Auto-detect and use any available formatters from Mason
-      vim.api.nvim_create_autocmd('BufWritePre', {
-        callback = function(args)
-          local all_formatters = conform.list_all_formatters()
-          local available = {}
-          
-          for _, fmt in ipairs(all_formatters) do
-            if fmt.available then
-              table.insert(available, fmt.name)
-            end
+        notify_no_formatters = false,
+        format_on_save = function(bufnr)
+          -- `:FormatDisable` / `:FormatEnable` toggle (buffer-local with `!`).
+          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+            return
           end
-          
-          if #available > 0 then
-            conform.format({ bufnr = args.buf, lsp_fallback = true })
-          end
+          return {
+            timeout_ms = 2500, -- prettierd cold start needs more than 500ms
+            lsp_format = 'fallback', -- LSP only if no conform formatter ran
+          }
         end,
-      })
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          -- JS/TS (Angular, NestJS, Next.js, shadcn): prettierd is fast,
+          -- plain prettier is the fallback. `stop_after_first` guarantees
+          -- only ONE runs, so you never get double-format fights.
+          javascript = { 'prettierd', 'prettier', stop_after_first = true },
+          javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+          typescript = { 'prettierd', 'prettier', stop_after_first = true },
+          typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+          -- Web assets / config files: same prettier pipeline.
+          html = { 'prettierd', 'prettier', stop_after_first = true },
+          css = { 'prettierd', 'prettier', stop_after_first = true },
+          scss = { 'prettierd', 'prettier', stop_after_first = true },
+          json = { 'prettierd', 'prettier', stop_after_first = true },
+          jsonc = { 'prettierd', 'prettier', stop_after_first = true },
+          yaml = { 'prettierd', 'prettier', stop_after_first = true },
+          markdown = { 'prettierd', 'prettier', stop_after_first = true },
+          graphql = { 'prettierd', 'prettier', stop_after_first = true },
+          -- Python (Django): ruff formats + sorts imports. Installs via Mason.
+          python = { 'ruff_format', 'ruff_organize_imports', lsp_format = 'fallback' },
+          -- NOTE: no `stop_after_first` for python on purpose: both ruff
+          -- formatters are complementary (format + import sort).
+          -- Blade (Laravel): installs via Mason.
+          blade = { 'blade-formatter' },
+          --
+          -- Deliberately NOT listed (LSP fallback handles them):
+          --   php/blade -> intelephense | rust -> rust-analyzer (rustaceanvim)
+          --   go -> gopls (go.nvim disabled) | eslint problems -> eslint LSP
+          --   diagnostics + `<leader>cd` code action, never the formatter.
+          --   (Your eslint config already includes eslint-plugin-prettier, so
+          --   running eslint --fix AS a formatter would fight prettier.)
+        },
+      }
+
+      vim.api.nvim_create_user_command('FormatDisable', function(args)
+        if args.bang then
+          vim.b.disable_autoformat = true
+        else
+          vim.g.disable_autoformat = true
+        end
+      end, { desc = 'Disable autoformat-on-save', bang = true })
+      vim.api.nvim_create_user_command('FormatEnable', function()
+        vim.b.disable_autoformat = false
+        vim.g.disable_autoformat = false
+      end, { desc = 'Re-enable autoformat-on-save' })
     end,
   },
 
@@ -888,19 +1069,6 @@ require('lazy').setup({
     event = 'VimEnter',
     version = '1.*',
     dependencies = {
-      { 'roobert/tailwindcss-colorizer-cmp.nvim', config = true },
-      -- Avante compatibility source for blink.cmp
-      'Kaiser-Yang/blink-cmp-avante',
-        -- blink.cmp integration for Copilot
-        -- 'giuxtaposition/blink-cmp-copilot',
-      opts = function(_, opts)
-        -- original LazyVim kind icon formatter
-        local format_kinds = opts.formatting.format
-        opts.formatting.format = function(entry, item)
-          format_kinds(entry, item) -- add icons
-          return require('tailwindcss-colorizer-cmp').formatter(entry, item)
-        end
-      end,
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
@@ -914,16 +1082,12 @@ require('lazy').setup({
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
+dependencies = {
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          { 'rafamadriz/friendly-snippets', config = function() end },
+          { 'mlaursen/vim-react-snippets', opts = {} },
         },
         opts = {},
       },
@@ -973,28 +1137,34 @@ require('lazy').setup({
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
         documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        -- Disable prefetch-on-insert to avoid firing Minuet on every keystroke.
+        trigger = { prefetch_on_insert = false },
       },
 
       sources = {
-        -- Include Copilot and Avante as blink.cmp sources so suggestions
-        -- appear in the completion menu alongside LSP/snippets/path.
-        -- Note: Luasnip is now provided via the `snippets` source using
-        -- `snippets.preset = 'luasnip'` (see plugin docs). Use 'snippets'
-        -- here instead of 'luasnip'.
-        default = { 'avante', 'lsp', 'path', 'snippets', 'buffer' },
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+        per_filetype = {
+          lua = { inherit_defaults = true, 'lazydev' }, -- vim API completions (provider below)
+          python = { inherit_defaults = true, 'django' },
+          php = { inherit_defaults = true, 'laravel' },
+          blade = { inherit_defaults = true, 'laravel' },
+          tinker = { inherit_defaults = true, 'laravel' },
+        },
         providers = {
-          -- Avante blink.compat adapter
-          avante = {
-            module = 'blink-cmp-avante',
-            name = 'Avante',
-            opts = {},
+          -- All framework completion providers live here in one place.
+          -- (django.nvim.lua used to add its own via a second blink spec;
+          -- that split-brain merge was fragile, so it now only declares the
+          -- snacks.nvim dependency and this table owns both providers.)
+          laravel = {
+            name = 'Laravel',
+            module = 'laravel.extensions.completion.blink',
+            score_offset = 95,
           },
-          -- Copilot adapter disabled since copilot.lua is disabled
-          -- copilot = {
-          --   module = 'blink-cmp-copilot',
-          --   name = 'Copilot',
-          --   opts = {},
-          -- },
+          django = {
+            name = 'Django',
+            module = 'django.completions.blink',
+            async = true,
+          },
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },
@@ -1032,77 +1202,11 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
       vim.cmd.colorscheme 'tokyonight-storm'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
-  },
-  -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-
-  { -- Collection of various small independent plugins/modules
-    'echasnovski/mini.nvim',
-    config = function()
-      -- Better Around/Inside textobjects
-      --
-      -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
-      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-      --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
-      -- require('mini.indentscope').setup()
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      --
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
-
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
-
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
-    end,
-  },
-  { -- Highlight, edit, and navigate code
-    'nvim-treesitter/nvim-treesitter',
-    build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
@@ -1114,11 +1218,9 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  -- require 'kickstart.plugins.debug', -- disabled: lua/custom/plugins/nvim-dap.lua covers DAP (with mason-nvim-dap)
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`

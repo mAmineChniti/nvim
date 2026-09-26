@@ -42,15 +42,6 @@ return {
             'filename',
             symbols = { modified = '  ', readonly = '', unnamed = '' },
           },
-          {
-            function()
-              return require('nvim-navic').get_location()
-            end,
-            cond = function()
-              return package.loaded['nvim-navic'] and require('nvim-navic').is_available()
-            end,
-            color = { fg = colors.green, bg = colors.bg },
-          },
         },
         lualine_x = {
           {
@@ -85,7 +76,7 @@ return {
           end,
         },
       },
-      extensions = { 'lazy', 'toggleterm', 'mason', 'neo-tree', 'trouble' },
+      extensions = { 'lazy', 'toggleterm', 'mason', 'trouble' },
     }
   end,
 }

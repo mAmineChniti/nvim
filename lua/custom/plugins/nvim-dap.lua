@@ -1,16 +1,47 @@
 return {
   'mfussenegger/nvim-dap',
-  recommended = true,
   desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
 
   dependencies = {
     'rcarriga/nvim-dap-ui',
+    'nvim-neotest/nvim-nio', -- required by nvim-dap-ui
     -- virtual text for the debugger
     {
       'theHamsta/nvim-dap-virtual-text',
       opts = {},
     },
+    -- Auto-install debug adapters via Mason instead of configuring each
+    -- language adapter by hand. Adapters install on demand when you start
+    -- a debug session; check/install manually anytime with `:Mason`.
+    'mason-org/mason.nvim',
+    {
+      'jay-babu/mason-nvim-dap.nvim',
+      opts = {
+        automatic_installation = true,
+        -- Pre-seed adapters for the daily-driver stacks so the first debug
+        -- session doesn't stall on downloads (names per mason-nvim-dap).
+        ensure_installed = { 'python', 'js' }, -- debugpy + js-debug-adapter
+        handlers = {},
+      },
+    },
   },
+
+  init = function()
+    local dap = require 'dap'
+    local dapui = require 'dapui'
+
+    dapui.setup()
+
+    dap.listeners.after.event_initialized['dapui_config'] = function()
+      dapui.open()
+    end
+    dap.listeners.before.event_terminated['dapui_config'] = function()
+      dapui.close()
+    end
+    dap.listeners.before.event_exited['dapui_config'] = function()
+      dapui.close()
+    end
+  end,
 
   -- stylua: ignore
   keys = {
@@ -18,7 +49,12 @@ return {
     { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
     { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
     { "<leader>dc", function() require("dap").continue() end, desc = "Continue" },
-    { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
+    { "<leader>da", function()
+      local args = vim.fn.input 'Run with args: '
+      require('dap').continue { before = function(config)
+        config.args = vim.split(args, ' ', { trimempty = true })
+      end }
+    end, desc = "Run with Args" },
     { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to Cursor" },
     { "<leader>dg", function() require("dap").goto_() end, desc = "Go to Line (No Execute)" },
     { "<leader>di", function() require("dap").step_into() end, desc = "Step Into" },
@@ -35,28 +71,25 @@ return {
   },
 
   config = function()
-    -- load mason-nvim-dap here, after all adapters have been setup
-    if LazyVim.has 'mason-nvim-dap.nvim' then
-      require('mason-nvim-dap').setup(LazyVim.opts 'mason-nvim-dap.nvim')
-    end
-
     vim.api.nvim_set_hl(0, 'DapStoppedLine', { default = true, link = 'Visual' })
 
-    for name, sign in pairs(LazyVim.config.icons.dap) do
-      sign = type(sign) == 'table' and sign or { sign }
-      vim.fn.sign_define('Dap' .. name, { text = sign[1], texthl = sign[2] or 'DiagnosticInfo', linehl = sign[3], numhl = sign[3] })
+    local signs = {
+      Breakpoint = { '●', 'DiagnosticError' },
+      BreakpointCondition = { '◆', 'DiagnosticWarn' },
+      BreakpointRejected = { '', 'DiagnosticError' },
+      LogPoint = { '▶', 'DiagnosticInfo' },
+      Stopped = { '', 'DiagnosticInfo', 'DapStoppedLine' },
+    }
+
+    for name, sign in pairs(signs) do
+      vim.fn.sign_define('Dap' .. name, {
+        text = sign[1],
+        texthl = sign[2],
+        linehl = sign[3],
+        numhl = sign[3],
+      })
     end
 
-    -- setup dap config by VsCode launch.json file
-    local vscode = require 'dap.ext.vscode'
-    local json = require 'plenary.json'
-    vscode.json_decode = function(str)
-      return vim.json.decode(json.json_strip_comments(str))
-    end
-
-    -- Extends dap.configurations with entries read from .vscode/launch.json
-    if vim.fn.filereadable '.vscode/launch.json' then
-      vscode.load_launchjs()
-    end
+    -- .vscode/launch.json files are now read automatically on-demand
   end,
 }

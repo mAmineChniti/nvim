@@ -10,4 +10,10 @@ return {
     -- or leave it empty to use the default settings
     -- refer to the configuration section below
   },
+  -- NOTE: lowercase-only bindings (broken Shift keys); <leader>x was unclaimed.
+  keys = {
+    { '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Diagnostics (Trouble)' },
+    { '<leader>xd', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', desc = 'Buffer diagnostics (Trouble)' },
+    { '<leader>xq', '<cmd>Trouble qflist toggle<cr>', desc = 'Quickfix (Trouble)' },
+  },
 }
